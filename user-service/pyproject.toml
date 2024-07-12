@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "app"
 version = "0.1.0"
-description = ""
-authors = ["Zia Khan <zia@panacloud.com>"]
+description = "User service for crud operations"
+authors = ["ARSALAN <arsalan.akkhter@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
