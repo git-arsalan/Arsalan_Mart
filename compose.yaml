@@ -1,5 +1,6 @@
 version: '3.8'
 name: arsalan-mart-services
+#----------------------------------------------------------------------------------------------
 services:
   inventory-service:
     build:
@@ -12,6 +13,7 @@ services:
         - broker
     ports:
       - "8001:8000"  # Expose container port 8000 to host port 8001  
+#----------------------------------------------------------------------------------------------      
   notification-service:
     build:
       context: ./notification-service
@@ -23,6 +25,7 @@ services:
         - broker
     ports:
       - "8002:8000"  # Expose container port 8000 to host port 8002
+#----------------------------------------------------------------------------------------------
   order-service:
     build:
       context: ./order-service
@@ -34,6 +37,7 @@ services:
         - broker
     ports:
       - "8003:8000"  # Expose container port 8000 to host port 8003
+#----------------------------------------------------------------------------------------------      
   payment-service:
     build:
       context: ./payment-service
@@ -45,6 +49,7 @@ services:
         - broker
     ports:
       - "8004:8000"  # Expose container port 8000 to host port 8004
+#----------------------------------------------------------------------------------------------      
   product-service:
     build:
       context: ./product-service
@@ -56,6 +61,7 @@ services:
         - broker
     ports:
       - "8005:8000"  # Expose container port 8000 to host port 8005
+#----------------------------------------------------------------------------------------------      
   user-service:
     build:
       context: ./user-service
@@ -67,6 +73,7 @@ services:
         - broker
     ports:
       - "8006:8000"  # Expose container port 8000 to host port 8004        
+#----------------------------------------------------------------------------------------------      
   postgres_db:
     image: postgres:latest  # Use the official PostgreSQL image
     restart: always
@@ -79,6 +86,7 @@ services:
         - '5433:5432'
     volumes:
         - postgres_db:/var/lib/postgresql/data
+#----------------------------------------------------------------------------------------------        
   broker:
     image: apache/kafka:3.7.0
     hostname: broker
@@ -100,7 +108,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
-
+#----------------------------------------------------------------------------------------------
   kafka-ui:
     image: provectuslabs/kafka-ui
     container_name: kafka-ui
@@ -112,9 +120,11 @@ services:
       DYNAMIC_CONFIG_ENABLED: "true"
     depends_on:
       - broker
+#----------------------------------------------------------------------------------------------      
 volumes:
   postgres_db:
     driver: local
 networks:
   default:
     driver: bridge
+#-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-x--x-x-x-x-x
