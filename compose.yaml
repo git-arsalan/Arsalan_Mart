@@ -1,28 +1,72 @@
 version: '3.8'
-name: template01
+name: arsalan-mart-services
 services:
-  api:
+  inventory-service:
     build:
-      context: ./todo
+      context: ./inventory-service
       dockerfile: Dockerfile.dev
     volumes:
-      - ./todo:/code  # Sync local development directory with the container
+      - ./inventory-service:/code  # Sync local development directory with the container
     depends_on:
         - postgres_db
         - broker
     ports:
-      - "8000:8000"  # Expose container port 8000 to host port 8000  
-  api2:
+      - "8001:8000"  # Expose container port 8000 to host port 8001  
+  notification-service:
     build:
-      context: ./microservice_02
+      context: ./notification-service
       dockerfile: Dockerfile.dev
     volumes:
-      - ./microservice_02:/code  # Sync local development directory with the container
+      - ./notification-service:/code  # Sync local development directory with the container
     depends_on:
         - postgres_db
         - broker
     ports:
-      - "8002:8000"  # Expose container port 8000 to host port 8000  
+      - "8002:8000"  # Expose container port 8000 to host port 8002
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./order-service:/code  # Sync local development directory with the container
+    depends_on:
+        - postgres_db
+        - broker
+    ports:
+      - "8003:8000"  # Expose container port 8000 to host port 8003
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./payment-service:/code  # Sync local development directory with the container
+    depends_on:
+        - postgres_db
+        - broker
+    ports:
+      - "8004:8000"  # Expose container port 8000 to host port 8004
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./product-service:/code  # Sync local development directory with the container
+    depends_on:
+        - postgres_db
+        - broker
+    ports:
+      - "8005:8000"  # Expose container port 8000 to host port 8005
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./user-service:/code  # Sync local development directory with the container
+    depends_on:
+        - postgres_db
+        - broker
+    ports:
+      - "8006:8000"  # Expose container port 8000 to host port 8004        
   postgres_db:
     image: postgres:latest  # Use the official PostgreSQL image
     restart: always
