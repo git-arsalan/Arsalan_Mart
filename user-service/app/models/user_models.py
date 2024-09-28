@@ -1,20 +1,13 @@
-from sqlmodel import Field, Session, SQLModel, create_engine, select
-from datetime import datetime
-from pydantic import EmailStr
-from typing import Union, Optional, Annotated
+from sqlmodel import SQLModel, Field
+from typing import Optional
 
-## defining base model class for user
+class MartUser(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
+    email: str
+    hashed_password: str
 
-class baseUser (SQLModel, table=True):
-    user_key : int | None = Field(default=None, primary_key=True) 
-    user_name: str
-    login_id: str
-    password: str
-    phone: str = Field(max_digits=11)
-    email: EmailStr
-    created_on: datetime
-    
-
-class Auth_User (SQLModel):
-    login_id: str
-    password: str
+class UserCreate(SQLModel):
+    name: str
+    email: str
+    password: str  # This is the plain password; we will hash i

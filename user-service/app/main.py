@@ -1,67 +1,69 @@
-# main.py
+from fastapi import FastAPI, Depends, HTTPException, status
+from sqlmodel import Session
+from app.models.user_models import MartUser,UserCreate
+from app.controllers.crud_user import get_user_by_email,hash_password
+from app.db.db_Connector import get_session, create_db_and_tables, DB_SESSION
+#from kafka import KafkaProducer
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
-from typing import AsyncGenerator
-from aiokafka import AIOKafkaConsumer
-import asyncio
-
 import json
 
-async def consume_messages(topic, bootstrap_servers):
-    # Create a consumer instance.
-    consumer = AIOKafkaConsumer(
-        topic,
-        bootstrap_servers=bootstrap_servers,
-        group_id="my-todos-group",
-        auto_offset_reset='earliest'
-    )
 
-    # Start the consumer.
-    await consumer.start()
-    try:
-        # Continuously listen for messages.
-        async for message in consumer:
-            print(f"Received message: {message.value.decode()} on topic {message.topic}")
-            # Here you can add code to process each message.
-            # Example: parse the message, store it in a database, etc.
-    finally:
-        # Ensure to close the consumer when done.
-        await consumer.stop()
-
-
-# The first part of the function, before the yield, will
-# be executed before the application starts.
-# https://fastapi.tiangolo.com/advanced/events/#lifespan-function
-# loop = asyncio.get_event_loop()
 @asynccontextmanager
-async def lifespan(app: FastAPI)-> AsyncGenerator[None, None]:
-    # print("Creating tables..")
-    task = asyncio.create_task(consume_messages('todos', 'broker:19092'))
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
     yield
 
+app = FastAPI(
+    title="User Service",
+    description="API for managing users",
+    version="1.0.0",
+    lifespan=lifespan,
+    openapi_tags=[
+        {"name": "Users", "description": "Operations with users."}
+    ]
+)
 
-app = FastAPI(lifespan=lifespan, title="Hello World API with DB", 
-    version="0.0.1",
-    servers=[
-        {
-            "url": "http://127.0.0.1:8002", # ADD NGROK URL Here Before Creating GPT Action
-            "description": "Development Server"
-        },{
-            "url": "http://127.0.0.1:8000", # ADD NGROK URL Here Before Creating GPT Action
-            "description": "Development Server"
-        }
-        ])
+#app = FastAPI()
+
+# Initialize Kafka producer
+""" producer = KafkaProducer(
+    bootstrap_servers='localhost:9092',
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+) """
 
 
+################## Main Route #################################################
 @app.get("/")
-def read_root():
-    return {"App": "Service 2"}
+def home_route():
+    return "This is user service"
 
-# Kafka Producer as a dependency
-async def get_kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers='broker:19092')
-    await producer.start()
-    try:
-        yield producer
-    finally:
-        await producer.stop()
+##################     Register User Route ####################################
+
+@app.post("/CreateUsers/") #Annotated[User, Depends(get_user_by_id_func)]
+def add_user(user_data: UserCreate, session: Session = Depends(get_session)):
+    # Check if the user already exists
+    existing_user = get_user_by_email(user_data.email, session)
+    print(user_data.email)
+    
+    if existing_user:
+        raise HTTPException(
+            status_code= status.HTTP_400_BAD_REQUEST,
+            detail="User with this email already exists."
+        )
+    
+    # Hash the user's password
+    hashed_password = hash_password(user_data.password)
+    
+    # Create a new User object
+    new_user = MartUser(name=user_data.name, email=user_data.email, hashed_password=hashed_password)
+    
+    # Add and commit the new user to the database
+    session.add(new_user)
+    session.commit()
+    session.refresh(new_user)
+    
+    return new_user
+# if __name__ == "__main__":
+#     import uvicorn
+#     init_db()  # Initialize the database tables
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
