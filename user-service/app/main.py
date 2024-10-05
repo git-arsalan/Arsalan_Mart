@@ -41,28 +41,31 @@ def home_route():
 
 @app.post("/CreateUsers/") #Annotated[User, Depends(get_user_by_id_func)]
 def add_user(user_data: UserCreate, session: Session = Depends(get_session)):
-    # Check if the user already exists
-    existing_user = get_user_by_email(user_data.email, session)
-    print(user_data.email)
-    
-    if existing_user:
-        raise HTTPException(
-            status_code= status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exists."
-        )
-    
-    # Hash the user's password
-    hashed_password = hash_password(user_data.password)
-    
-    # Create a new User object
-    new_user = MartUser(name=user_data.name, email=user_data.email, hashed_password=hashed_password)
-    
-    # Add and commit the new user to the database
-    session.add(new_user)
-    session.commit()
-    session.refresh(new_user)
-    
-    return new_user
+    try:
+        # Check if the user already exists
+        existing_user = get_user_by_email(user_data.email, session)
+        print(user_data.email)
+        
+        if existing_user:
+            raise HTTPException(
+                status_code= status.HTTP_400_BAD_REQUEST,
+                detail="User with this email already exists."
+            )
+        
+        # Hash the user's password
+        hashed_password = hash_password(user_data.password)
+        
+        # Create a new User object
+        new_user = MartUser(name=user_data.name, email=user_data.email, hashed_password=hashed_password)
+        
+        # Add and commit the new user to the database
+        session.add(new_user)
+        session.commit()
+        session.refresh(new_user)
+        print("new user:" + new_user)
+        return f"user created successfully with name ={new_user.name}"
+    except Exception as e:
+        print("An error occurred:", e)
 # if __name__ == "__main__":
 #     import uvicorn
 #     init_db()  # Initialize the database tables
