@@ -3,7 +3,7 @@ from sqlmodel import Session
 from app.models.user_models import MartUser,UserCreate
 from app.controllers.crud_user import get_user_by_email,hash_password
 from app.db.db_Connector import get_session, create_db_and_tables, DB_SESSION
-#from kafka import KafkaProducer
+from kafka import KafkaProducer
 from contextlib import asynccontextmanager
 import json
 
@@ -26,10 +26,10 @@ app = FastAPI(
 #app = FastAPI()
 
 # Initialize Kafka producer
-""" producer = KafkaProducer(
+producer = KafkaProducer(
     bootstrap_servers='localhost:9092',
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
-) """
+)
 
 
 ################## Main Route #################################################
@@ -50,7 +50,9 @@ def add_user(user_data: UserCreate, session: Session = Depends(get_session)):
             raise HTTPException(
                 status_code= status.HTTP_400_BAD_REQUEST,
                 detail="User with this email already exists."
+                
             )
+            
         
         # Hash the user's password
         hashed_password = hash_password(user_data.password)
@@ -63,9 +65,13 @@ def add_user(user_data: UserCreate, session: Session = Depends(get_session)):
         session.commit()
         session.refresh(new_user)
         print("new user:" + new_user)
-        return f"user created successfully with name ={new_user.name}"
+        ###### Publish a message to Kafka after user registration ########################
+        producer.send('user_registered', {'email': new_user.email, 'name': new_user.name})
+        ###### Publish a message to Kafka after user registration ########################
+        return f"user created successfully with name ={str(new_user.name)}"
     except Exception as e:
         print("An error occurred:", e)
+        return e
 # if __name__ == "__main__":
 #     import uvicorn
 #     init_db()  # Initialize the database tables
